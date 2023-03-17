@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 project(mruby-lite)
 
 # configure
-option(MRB_USE_METHOD_T_STRUCT "add -DMRB_USE_METHOD_T_STRUCT on machines that use higher bits of function pointers" OFF)
+option(MRB_USE_METHOD_T_STRUCT "add this on machines that use higher bits of function pointers" OFF)
 option(MRB_NAN_BOXING "represent mrb_value in boxed double" OFF)
 option(MRB_WORD_BOXING "represent mrb_value as a word (natural unit of data for the processor)" OFF)
 option(MRB_NO_BOXING "represent mrb_value as a struct; occupies 2 words" OFF)
@@ -33,9 +33,9 @@ if (MRB_USE_DEBUG_HOOK)
 endif()
 
 # libmruby_core
-
 configure_file(include/mrbconf.h.in ${CMAKE_BINARY_DIR}/mrbconf.h @ONLY)
 file(GLOB_RECURSE MRB_CORE_SOURCES CONFIGURE_DEPENDS src/*.c**)
 add_library(mruby_core STATIC ${MRB_CORE_SOURCES})
 target_include_directories(mruby_core PUBLIC include)
 target_include_directories(mruby_core PUBLIC ${CMAKE_BINARY_DIR})
+target_compile_options(mruby_core PUBLIC -fPIC)
