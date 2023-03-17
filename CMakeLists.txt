@@ -51,3 +51,11 @@ else()
     add_dependencies(mrbc mruby_core)
     set(MRUBY_MRBC ${CMAKE_BINARY_DIR}/mrbc CACHE FILEPATH "mrbc executable")
 endif()
+
+# base mrblib
+file(GLOB_RECURSE MRB_MRBLIB_BASE_SOURCES CONFIGURE_DEPENDS mrblib/*.rb)
+add_custom_target(mrblib_base ALL
+    COMMAND ${MRUBY_MRBC} -B mrblib_base -o ${CMAKE_BINARY_DIR}/mrblib_base.h ${MRB_MRBLIB_BASE_SOURCES}
+    BYPRODUCTS ${CMAKE_BINARY_DIR}/mrblib_base.h
+    COMMENT "build mrblib base"
+)
