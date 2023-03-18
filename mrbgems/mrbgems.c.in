@@ -1,0 +1,36 @@
+#include <stdlib.h>
+#include <mruby.h>
+#include <mruby/irep.h>
+#include <mruby/debug.h>
+#include <mruby/proc.h>
+#include <mruby/presym.h>
+
+@MRB_MRBLIB_DECLARES@
+static void
+mrb_final_mrbgems(mrb_state *mrb)
+{
+@MRB_MRBLIB_FINAL_EXPR@
+}
+
+void
+mrb_init_mrbgems(mrb_state *mrb) 
+{
+int ai;
+struct REnv *e;
+#define MRB_GEMINIT_PROCESS(func, sign) ai = mrb_gc_arena_save(mrb); \
+func(mrb); \
+MRB_##sign##_init; \
+if (mrb->exc) { \
+    mrb_print_error(mrb); \
+    mrb_close(mrb); \
+    exit(EXIT_FAILURE); \
+} \
+e = mrb_vm_ci_env(mrb->c->cibase); \
+mrb_vm_ci_env_set(mrb->c->cibase, NULL); \
+mrb_env_unshare(mrb, e, FALSE); \
+mrb_gc_arena_restore(mrb, ai);
+
+@MRB_MRBLIB_INIT_EXPR@
+mrb_state_atexit(mrb, mrb_final_mrbgems);
+#undef MRB_GEMINIT_PROCESS
+}

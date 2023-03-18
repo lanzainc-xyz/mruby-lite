@@ -59,3 +59,47 @@ add_custom_target(mrblib_base ALL
     BYPRODUCTS ${CMAKE_BINARY_DIR}/mrblib_base.h
     COMMENT "build mrblib base"
 )
+set(MRB_MRBLIB_INCLUDE "#include \"mrblib_base.h\"\n")
+
+# build mrbgems
+set(MRB_MGEM_LIST_STDLIB "mruby-compar-ext;mruby-enum-ext;mruby-string-ext;mruby-numeric-ext;mruby-array-ext;mruby-hash-ext;mruby-range-ext;mruby-proc-ext;mruby-symbol-ext;mruby-object-ext;mruby-objectspace;mruby-set;mruby-fiber;mruby-enumerator;mruby-enum-lazy;mruby-toplevel-ext;mruby-kernel-ext;mruby-class-ext;mruby-metaprog;mruby-method;mruby-eval;mruby-compiler;mruby-error;mruby-errno;mruby-pack;mruby-struct" CACHE STRING "built-in mrb mgems list")
+set(MRB_MGEM_LIST_CUSTOM "" CACHE STRING "custom mrb mgems list")
+set(MRB_MGEM_LIST ${MRB_MGEM_LIST_STDLIB})
+set(MRB_MGEM_LIST ${MRB_MGEM_LIST} ${MRB_MGEM_LIST_CUSTOM})
+set(MRB_SOURCES "")
+foreach(MRB_MGEM_NAME ${MRB_MGEM_LIST})
+    string(REPLACE "-" "_" MRB_MGEM_SIGN ${MRB_MGEM_NAME})
+    file(GLOB_RECURSE MRB_MGEM_CORE_SOURCES CONFIGURE_DEPENDS mrbgems/${MRB_MGEM_NAME}/core/*.c**)
+    file(GLOB_RECURSE MRB_MGEM_SOURCES CONFIGURE_DEPENDS mrbgems/${MRB_MGEM_NAME}/src/*.c**)
+    file(GLOB_RECURSE MRB_MGEM_RBSOURCES CONFIGURE_DEPENDS mrbgems/${MRB_MGEM_NAME}/mrblib/*.rb)
+    list(LENGTH MRB_MGEM_SOURCES MRB_MGEM_SOURCES_COUNT)
+    if (MRB_MGEM_SOURCES_COUNT GREATER 0)
+        set(MRB_MRBLIB_DECLARES "${MRB_MRBLIB_DECLARES}extern void mrb_${MRB_MGEM_SIGN}_gem_init(mrb_state* mrb);\n")
+        set(MRB_MRBLIB_DECLARES "${MRB_MRBLIB_DECLARES}extern void mrb_${MRB_MGEM_SIGN}_gem_final(mrb_state* mrb);\n")
+        set(MRB_MRBLIB_INIT_EXPR "${MRB_MRBLIB_INIT_EXPR}MRB_GEMINIT_PROCESS(mrb_${MRB_MGEM_SIGN}_gem_init, ${MRB_MGEM_SIGN});\n")
+        set(MRB_MRBLIB_FINAL_EXPR "${MRB_MRBLIB_FINAL_EXPR}mrb_${MRB_MGEM_SIGN}_gem_final(mrb);\n")
+    endif()
+    list(LENGTH MRB_MGEM_RBSOURCES MRB_MGEM_RBSOURCES_COUNT)
+    if (MRB_MGEM_RBSOURCES_COUNT GREATER 0)
+        set(MRB_MRBLIB_DECLARES "${MRB_MRBLIB_DECLARES}extern void mrb_init_mrbgem_${MRB_MGEM_SIGN}_mrblib(mrb_state* mrb);\n")
+        set(MRB_MRBLIB_DECLARES "${MRB_MRBLIB_DECLARES}#define MRB_${MRB_MGEM_SIGN}_init mrb_init_mrbgem_${MRB_MGEM_SIGN}_mrblib(mrb)\n")
+        add_custom_target(mrbgem_${MRB_MGEM_SIGN} ALL
+            COMMAND ${MRUBY_MRBC} -B mrbgem_${MRB_MGEM_SIGN} -o ${CMAKE_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.h ${MRB_MGEM_RBSOURCES}
+            BYPRODUCTS ${CMAKE_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.h
+            COMMENT "build mrbgem_${MRB_MGEM_SIGN}"
+        )
+        configure_file(mrbgems/mrbgem.c.in ${CMAKE_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.c @ONLY)
+        set(MRB_SOURCES ${MRB_SOURCES};${CMAKE_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.c)
+    else()
+    set(MRB_MRBLIB_DECLARES "${MRB_MRBLIB_DECLARES}#define MRB_${MRB_MGEM_SIGN}_init\n")
+    endif()
+    include_directories(mrbgems/${MRB_MGEM_NAME}/include)
+    set(MRB_CORE_SOURCES ${MRB_CORE_SOURCES};${MRB_MGEM_CORE_SOURCES})
+    set(MRB_SOURCES ${MRB_SOURCES};${MRB_MGEM_SOURCES})
+endforeach()
+configure_file(mrbgems/mrbgems.c.in ${CMAKE_BINARY_DIR}/mrbgems.c @ONLY)
+set(MRB_SOURCES ${MRB_CORE_SOURCES};${MRB_SOURCES};${CMAKE_BINARY_DIR}/mrbgems.c)
+
+# build mruby
+configure_file(mrblib/mrblib.c.in ${CMAKE_BINARY_DIR}/mrblib.c @ONLY)
+add_library(mruby STATIC ${MRB_SOURCES} ${CMAKE_BINARY_DIR}/mrblib.c)

@@ -1,0 +1,13 @@
+#include <stdlib.h>
+#include <mruby.h>
+#include <mruby/irep.h>
+#include <mruby/debug.h>
+#include <mruby/proc.h>
+#include <mruby/presym.h>
+#include "mrbgem_@MRB_MGEM_SIGN@.h"
+
+void
+mrb_init_mrbgem_@MRB_MGEM_SIGN@_mrblib(mrb_state *mrb)
+{
+    mrb_load_irep(mrb, mrbgem_@MRB_MGEM_SIGN@);
+}

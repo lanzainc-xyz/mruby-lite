@@ -1,0 +1,12 @@
+#include <mruby.h>
+#include <mruby/irep.h>
+#include <mruby/debug.h>
+#include <mruby/proc.h>
+#include <mruby/presym.h>
+
+@MRB_MRBLIB_INCLUDE@
+void
+mrb_init_mrblib(mrb_state *mrb)
+{
+    mrb_load_irep(mrb, mrblib_base);
+}
