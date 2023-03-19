@@ -54,20 +54,8 @@ add_custom_target(mrblib_base ALL
 )
 set(MRB_MRBLIB_INCLUDE "#include \"mrblib_base.h\"\n")
 
-# build mruby
-configure_file(mrblib/mrblib.c.in ${CMAKE_CURRENT_BINARY_DIR}/mrblib.c @ONLY)
-add_library(mruby STATIC ${MRB_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/mrblib.c)
-
-# mrbc
-file(GLOB_RECURSE MRB_COMPILER_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mrbgems/mruby-compiler/core/*.c**)
-file(GLOB_RECURSE MRB_MRBC_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mrbgems/mruby-bin-mrbc/tools/*.c**)
-add_executable(mrbc ${MRB_COMPILER_SOURCES} ${MRB_MRBC_SOURCES})
-target_link_libraries(mrbc mruby_core)
-add_dependencies(mrbc mruby_core)
-add_dependencies(mrblib_base mrbc)
-add_dependencies(mruby mrbc)
-
 # build mrbgems
+set(MRB_DEPENDENCIES "")
 set(MRB_MGEM_LIST_STDLIB "mruby-compar-ext;mruby-enum-ext;mruby-string-ext;mruby-numeric-ext;mruby-array-ext;mruby-hash-ext;mruby-range-ext;mruby-proc-ext;mruby-symbol-ext;mruby-object-ext;mruby-objectspace;mruby-set;mruby-fiber;mruby-enumerator;mruby-enum-lazy;mruby-toplevel-ext;mruby-kernel-ext;mruby-class-ext;mruby-metaprog;mruby-method;mruby-eval;mruby-compiler;mruby-error;mruby-errno;mruby-pack;mruby-struct" CACHE STRING "built-in mrb mgems list")
 set(MRB_MGEM_LIST_CUSTOM "" CACHE STRING "custom mrb mgems list")
 set(MRB_MGEM_LIST ${MRB_MGEM_LIST_STDLIB})
@@ -95,7 +83,7 @@ foreach(MRB_MGEM_NAME ${MRB_MGEM_LIST})
             # COMMENT "build mrbgem_${MRB_MGEM_SIGN}"
         )
         add_dependencies(mrbgem_${MRB_MGEM_SIGN} mrblib_base)
-        add_dependencies(mruby mrbgem_${MRB_MGEM_SIGN})
+        set(MRB_DEPENDENCIES ${MRB_DEPENDENCIES};mrbgem_${MRB_MGEM_SIGN})
         configure_file(mrbgems/mrbgem.c.in ${CMAKE_CURRENT_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.c @ONLY)
         set(MRB_SOURCES ${MRB_SOURCES};${CMAKE_CURRENT_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.c)
     else()
@@ -107,3 +95,19 @@ foreach(MRB_MGEM_NAME ${MRB_MGEM_LIST})
 endforeach()
 configure_file(mrbgems/mrbgems.c.in ${CMAKE_CURRENT_BINARY_DIR}/mrbgems.c @ONLY)
 set(MRB_SOURCES ${MRB_CORE_SOURCES};${MRB_SOURCES};${CMAKE_CURRENT_BINARY_DIR}/mrbgems.c)
+
+# build mruby
+configure_file(mrblib/mrblib.c.in ${CMAKE_CURRENT_BINARY_DIR}/mrblib.c @ONLY)
+add_library(mruby STATIC ${MRB_SOURCES} ${CMAKE_CURRENT_BINARY_DIR}/mrblib.c)
+foreach(MRB_DEPENDENCY ${MRB_DEPENDENCIES})
+    add_dependencies(mruby ${MRB_DEPENDENCY})
+endforeach()
+
+# mrbc
+file(GLOB_RECURSE MRB_COMPILER_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mrbgems/mruby-compiler/core/*.c**)
+file(GLOB_RECURSE MRB_MRBC_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mrbgems/mruby-bin-mrbc/tools/*.c**)
+add_executable(mrbc ${MRB_COMPILER_SOURCES} ${MRB_MRBC_SOURCES})
+target_link_libraries(mrbc mruby_core)
+add_dependencies(mrbc mruby_core)
+add_dependencies(mrblib_base mrbc)
+add_dependencies(mruby mrbc)
