@@ -56,7 +56,7 @@ set(MRB_MRBLIB_INCLUDE "#include \"mrblib_base.h\"\n")
 
 # build mrbgems
 set(MRB_DEPENDENCIES "")
-set(MRB_MGEM_LIST_STDLIB "mruby-compar-ext;mruby-enum-ext;mruby-string-ext;mruby-numeric-ext;mruby-array-ext;mruby-hash-ext;mruby-range-ext;mruby-proc-ext;mruby-symbol-ext;mruby-object-ext;mruby-objectspace;mruby-set;mruby-fiber;mruby-enumerator;mruby-enum-lazy;mruby-toplevel-ext;mruby-kernel-ext;mruby-class-ext;mruby-metaprog;mruby-method;mruby-eval;mruby-compiler;mruby-error;mruby-errno;mruby-pack;mruby-struct" CACHE STRING "built-in mrb mgems list")
+set(MRB_MGEM_LIST_STDLIB "mruby-compar-ext;mruby-enum-ext;mruby-string-ext;mruby-numeric-ext;mruby-array-ext;mruby-hash-ext;mruby-range-ext;mruby-proc-ext;mruby-symbol-ext;mruby-object-ext;mruby-objectspace;mruby-set;mruby-fiber;mruby-enumerator;mruby-enum-lazy;mruby-toplevel-ext;mruby-kernel-ext;mruby-class-ext;mruby-metaprog;mruby-method;mruby-eval;mruby-compiler;mruby-error;mruby-errno;mruby-pack;mruby-struct;mruby-sprintf" CACHE STRING "built-in mrb mgems list")
 set(MRB_MGEM_LIST_CUSTOM "" CACHE STRING "custom mrb mgems list")
 set(MRB_MGEM_LIST ${MRB_MGEM_LIST_STDLIB})
 set(MRB_MGEM_LIST ${MRB_MGEM_LIST} ${MRB_MGEM_LIST_CUSTOM})
