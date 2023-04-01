@@ -40,18 +40,21 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 add_compile_options(-fPIC)
 if (CMAKE_CROSSCOMPILING)
-    set(MRUBY_MRBC "" CACHE FILEPATH "mrbc executable")
+    set(MRUBY_MRBC_PATH "" CACHE FILEPATH "mrbc executable")
 else()
-    set(MRUBY_MRBC ${CMAKE_CURRENT_BINARY_DIR}/mrbc CACHE FILEPATH "mrbc executable")
+    set(MRUBY_MRBC_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE FILEPATH "mrbc executable")
 endif()
 
 # base mrblib
 file(GLOB_RECURSE MRB_MRBLIB_BASE_SOURCES CONFIGURE_DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/mrblib/*.rb)
-add_custom_target(mrblib_base ALL
-    COMMAND ${MRUBY_MRBC} -B mrblib_base -o ${CMAKE_CURRENT_BINARY_DIR}/mrblib_base.h ${MRB_MRBLIB_BASE_SOURCES}
+add_custom_target(mrblib_base ALL)
+add_custom_command(TARGET mrblib_base
+    PRE_BUILD
+    DEPENDS ${MRB_MRBLIB_BASE_SOURCES}
+    COMMAND ${MRUBY_MRBC_PATH}/mrbc -B mrblib_base -o ${CMAKE_CURRENT_BINARY_DIR}/mrblib_base.h ${MRB_MRBLIB_BASE_SOURCES}
     BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/mrblib_base.h
     # COMMENT "build mrblib base"
-)
+    )
 set(MRB_MRBLIB_INCLUDE "#include \"mrblib_base.h\"\n")
 
 # build mrbgems
@@ -77,11 +80,13 @@ foreach(MRB_MGEM_NAME ${MRB_MGEM_LIST})
     if (MRB_MGEM_RBSOURCES_COUNT GREATER 0)
         set(MRB_MRBLIB_DECLARES "${MRB_MRBLIB_DECLARES}extern void mrb_init_mrbgem_${MRB_MGEM_SIGN}_mrblib(mrb_state* mrb);\n")
         set(MRB_MRBLIB_DECLARES "${MRB_MRBLIB_DECLARES}#define MRB_${MRB_MGEM_SIGN}_init mrb_init_mrbgem_${MRB_MGEM_SIGN}_mrblib(mrb)\n")
-        add_custom_target(mrbgem_${MRB_MGEM_SIGN} ALL
-            COMMAND ${MRUBY_MRBC} -B mrbgem_${MRB_MGEM_SIGN} -o ${CMAKE_CURRENT_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.h ${MRB_MGEM_RBSOURCES}
+        add_custom_target(mrbgem_${MRB_MGEM_SIGN} ALL)
+        add_custom_command(TARGET mrbgem_${MRB_MGEM_SIGN}
+            PRE_BUILD
+            COMMAND ${MRUBY_MRBC_PATH}/mrbc -B mrbgem_${MRB_MGEM_SIGN} -o ${CMAKE_CURRENT_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.h ${MRB_MGEM_RBSOURCES}
             BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.h
             # COMMENT "build mrbgem_${MRB_MGEM_SIGN}"
-        )
+            )
         add_dependencies(mrbgem_${MRB_MGEM_SIGN} mrblib_base)
         set(MRB_DEPENDENCIES ${MRB_DEPENDENCIES};mrbgem_${MRB_MGEM_SIGN})
         configure_file(mrbgems/mrbgem.c.in ${CMAKE_CURRENT_BINARY_DIR}/mrbgem_${MRB_MGEM_SIGN}.c @ONLY)
@@ -112,4 +117,7 @@ if (NOT CMAKE_CROSSCOMPILING)
     add_dependencies(mrbc mruby_core)
     add_dependencies(mrblib_base mrbc)
     add_dependencies(mruby mrbc)
+    add_custom_command(TARGET mrbc
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:mrbc> ${MRUBY_MRBC_PATH})
 endif()
