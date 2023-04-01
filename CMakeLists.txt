@@ -42,7 +42,7 @@ add_compile_options(-fPIC)
 if (CMAKE_CROSSCOMPILING)
     set(MRUBY_MRBC_PATH "" CACHE FILEPATH "mrbc executable")
 else()
-    set(MRUBY_MRBC_PATH ${CMAKE_CURRENT_BINARY_DIR} CACHE FILEPATH "mrbc executable")
+    set(MRUBY_MRBC_PATH ${CMAKE_BINARY_DIR}/bin CACHE FILEPATH "mrbc executable")
 endif()
 
 # base mrblib
@@ -117,6 +117,10 @@ if (NOT CMAKE_CROSSCOMPILING)
     add_dependencies(mrbc mruby_core)
     add_dependencies(mrblib_base mrbc)
     add_dependencies(mruby mrbc)
+    add_custom_command(TARGET mrbc
+        POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${MRUBY_MRBC_PATH}
+        )
     add_custom_command(TARGET mrbc
         POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:mrbc> ${MRUBY_MRBC_PATH})
