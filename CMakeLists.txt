@@ -43,9 +43,9 @@ target_compile_options (mruby_core PRIVATE -fPIC)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 if (CMAKE_CROSSCOMPILING)
-    set(MRUBY_MRBC_PATH "" CACHE FILEPATH "mrbc executable")
+    set(MRUBY_MRBC_PATH "" CACHE FILEPATH "the parent folder of mrbc executable")
 else()
-    set(MRUBY_MRBC_PATH ${CMAKE_BINARY_DIR}/bin CACHE FILEPATH "mrbc executable")
+    set(MRUBY_MRBC_PATH ${CMAKE_BINARY_DIR}/bin CACHE FILEPATH "the parent folder of mrbc executable")
 endif()
 
 # base mrblib
