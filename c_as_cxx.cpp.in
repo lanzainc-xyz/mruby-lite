@@ -1,0 +1,5 @@
+#define __STDC_CONSTANT_MACROS
+#define __STDC_LIMIT_MACROS
+extern "C" {
+#include "@MRB_C_SOURCE@"
+}
